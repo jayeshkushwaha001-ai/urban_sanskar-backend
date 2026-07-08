@@ -26,7 +26,7 @@ const productSchema = new mongoose.Schema({
         type: String,
         required: [true, 'Product category is required'],
         enum: {
-            values: ['premium-linen', 'coord-sets', 'artisanal-kurtas', 'resort-lounge'],
+            values: ['premium-linen', 'coord-sets', 'artisanal-kurtas', 'resort-lounge' , 'handloom-dupatta'],
             message: '{VALUE} is an invalid category'
         }
     },
