@@ -26,7 +26,7 @@ const productSchema = new mongoose.Schema({
         type: String,
         required: [true, 'Product category is required'],
         enum: {
-            values: ['premium-linen', 'coord-sets', 'artisanal-kurtas', 'resort-lounge' , 'handloom-dupatta'],
+            values: ['coord-sets', 'dress', 'handloom-dupatta'],
             message: '{VALUE} is an invalid category'
         }
     },
@@ -50,7 +50,11 @@ const productSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
-
+    // 🌟 NEW ADDITION: New Arrivals toggle track karne ke liye
+    isNewArrival: {
+        type: Boolean,
+        default: false
+    },
     isSoldOut: {
         type: Boolean,
         default: false
