@@ -143,4 +143,53 @@ router.post('/verify', async (req, res) => {
     }
 });
 
+// 🌐 ROUTE: Razorpay Webhook (Server-to-Server Backup Safety)
+router.post('/webhook', async (req, res) => {
+    try {
+        const secret = process.env.RAZORPAY_WEBHOOK_SECRET;
+
+        // 1. Razorpay Ka Signature Verify Karo (Security Check)
+        const shasum = crypto.createHmac('sha256', secret);
+        shasum.update(JSON.stringify(req.body));
+        const digest = shasum.digest('hex');
+
+        if (digest !== req.headers['x-razorpay-signature']) {
+            console.error('❌ Fake Webhook Request Detected!');
+            return res.status(400).json({ status: 'failed', message: 'Invalid signature' });
+        }
+
+        // Signature valid hai! Ab event check karo
+        const event = req.body.event;
+
+        // 2. Agar Payment Capture Ho Gayi Hai (Chahe frontend crash ho gaya ho)
+        if (event === 'payment.captured' || event === 'order.paid') {
+            const paymentEntity = req.body.payload.payment.entity;
+            const rzpOrderId = paymentEntity.order_id;    
+            const rzpPaymentId = paymentEntity.id;        
+
+            // Check karo agar `/verify` ne pehle hi isko Success na kar diya ho
+            const existingOrder = await Order.findOne({ "paymentInfo.razorpayOrderId": rzpOrderId });
+            
+            if (existingOrder && existingOrder.paymentInfo.paymentStatus !== 'Success') {
+                // DB Me Status 'Success' Karo
+                existingOrder.paymentInfo.razorpayPaymentId = rzpPaymentId;
+                existingOrder.paymentInfo.paymentStatus = 'Success';
+                
+                const savedOrder = await existingOrder.save();
+                
+                // 🔥 WhatsApp alert backup me yahan se bhi chala jayega!
+                sendAdminOrderAlert(savedOrder);
+                console.log(`✅ Order ${savedOrder._id} Secured via Webhook!`);
+            }
+        }
+
+        // Razorpay ko batao ki request mil gayi hai
+        res.status(200).json({ status: 'ok' });
+
+    } catch (err) {
+        console.error('🚨 Webhook Error:', err.message);
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+});
+
 module.exports = router;
