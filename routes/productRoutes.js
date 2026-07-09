@@ -5,10 +5,10 @@ const Product = require('../models/Product');
 // 🚀 ROUTE 1: Naya Product Add Karne Ke Liye (Admin Ke Liye)
 router.post('/', async (req, res) => {
     try {
-        // 🔥 Naye fields (collectionTag aur isSoldOut) ko destructure kiya
+        // 🔥 FIX: 'isNewArrival' ko bhi destructure kar liya taaki admin controls chal sakein
         const {
             title, price, desc, images, sizes, category,
-            collectionTag, fabric, fit, details, isBestSeller, isSoldOut
+            collectionTag, fabric, fit, details, isBestSeller, isNewArrival, isSoldOut
         } = req.body;
 
         const newProduct = new Product({
@@ -23,7 +23,8 @@ router.post('/', async (req, res) => {
             fit,
             details,
             isBestSeller,
-            isSoldOut // 🔥 Ab naya product banate waqt bhi sold out set kar sakte hain
+            isNewArrival, // 🔥 Model me save karne ke liye
+            isSoldOut
         });
 
         const savedProduct = await newProduct.save();
@@ -37,7 +38,7 @@ router.post('/', async (req, res) => {
         console.error("🔥 Backend Terminal Error:", err);
         res.status(500).json({
             success: false,
-            message: "Product add karne me dikkat aayi",
+            message: "Product adding issue",
             error: err.message
         });
     }
@@ -55,7 +56,7 @@ router.get('/', async (req, res) => {
     } catch (err) {
         res.status(500).json({
             success: false,
-            message: "Products fetch karne me dikkat aayi",
+            message: "Products fetching issue",
             error: err.message
         });
     }
@@ -73,7 +74,26 @@ router.get('/bestsellers', async (req, res) => {
     } catch (err) {
         res.status(500).json({
             success: false,
-            message: "Best sellers fetch karne me dikkat aayi",
+            message: "Best sellers fetching issue",
+            error: err.message
+        });
+    }
+});
+
+// 🌟 ROUTE 3b: NEW ADDITION - Sirf New Arrivals Get Karne Ke Liye
+// ⚠️ NOTE: Isko /:id se upar rakhna mandatory tha taaki Express ise id na samajh le!
+router.get('/newarrivals', async (req, res) => {
+    try {
+        const newArrivals = await Product.find({ isNewArrival: true }).sort({ createdAt: -1 });
+        res.status(200).json({
+            success: true,
+            count: newArrivals.length,
+            products: newArrivals
+        });
+    } catch (err) {
+        res.status(500).json({
+            success: false,
+            message: "New arrivals fetching issue",
             error: err.message
         });
     }
@@ -84,7 +104,7 @@ router.get('/:id', async (req, res) => {
     try {
         const product = await Product.findById(req.params.id);
         if (!product) {
-            return res.status(404).json({ success: false, message: "Product nahi mila!" });
+            return res.status(404).json({ success: false, message: "Product not found!" });
         }
         res.status(200).json({
             success: true,
@@ -93,7 +113,7 @@ router.get('/:id', async (req, res) => {
     } catch (err) {
         res.status(500).json({
             success: false,
-            message: "Product detail fetch karne me dikkat aayi",
+            message: "Problem in fetching product details",
             error: err.message
         });
     }
@@ -102,7 +122,7 @@ router.get('/:id', async (req, res) => {
 // 🔄 ROUTE 5: Product Update Karne Ke Liye (Admin Panel Edit System)
 router.put('/:id', async (req, res) => {
     try {
-        // Yeh route req.body me jo bhi aayega (tag, isSoldOut, price) sab database me automatic update kar dega
+        // Yeh route req.body me jo bhi aayega (isNewArrival, tag, price) sab automatic update kar dega
         const updatedProduct = await Product.findByIdAndUpdate(
             req.params.id,
             req.body,
