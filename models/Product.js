@@ -10,6 +10,10 @@ const productSchema = new mongoose.Schema({
         type: Number,
         required: [true, 'Product price is required']
     },
+        mrpPrice: {
+        type: Number,
+        default: null 
+    },
     desc: {
         type: String,
         required: [true, 'Product description is required']
@@ -26,7 +30,7 @@ const productSchema = new mongoose.Schema({
         type: String,
         required: [true, 'Product category is required'],
         enum: {
-            values: ['coord-sets', 'dress', 'handloom-dupatta' ,'hand-series', 'stories'],
+            values: ['coord-sets', 'dress', 'handloom-dupatta', 'hand-series', 'stories'],
             message: '{VALUE} is an invalid category'
         }
     },
@@ -50,7 +54,6 @@ const productSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
-    // 🌟 NEW ADDITION: New Arrivals toggle track karne ke liye
     isNewArrival: {
         type: Boolean,
         default: false
