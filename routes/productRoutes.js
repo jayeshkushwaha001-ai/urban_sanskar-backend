@@ -5,15 +5,16 @@ const Product = require('../models/Product');
 // 🚀 ROUTE 1: Naya Product Add Karne Ke Liye (Admin Ke Liye)
 router.post('/', async (req, res) => {
     try {
-        // 🔥 FIX: 'isNewArrival' ko bhi destructure kar liya taaki admin controls chal sakein
+        // 🔥 FIX: 'mrpPrice' ko bhi destructure kar liya taaki backend ise receive kar sake
         const {
-            title, price, desc, images, sizes, category,
+            title, price, mrpPrice, desc, images, sizes, category,
             collectionTag, fabric, fit, details, isBestSeller, isNewArrival, isSoldOut
         } = req.body;
 
         const newProduct = new Product({
             title,
             price,
+            mrpPrice, 
             desc,
             images,
             sizes,
@@ -23,7 +24,7 @@ router.post('/', async (req, res) => {
             fit,
             details,
             isBestSeller,
-            isNewArrival, // 🔥 Model me save karne ke liye
+            isNewArrival, 
             isSoldOut
         });
 
@@ -81,7 +82,6 @@ router.get('/bestsellers', async (req, res) => {
 });
 
 // 🌟 ROUTE 3b: NEW ADDITION - Sirf New Arrivals Get Karne Ke Liye
-// ⚠️ NOTE: Isko /:id se upar rakhna mandatory tha taaki Express ise id na samajh le!
 router.get('/newarrivals', async (req, res) => {
     try {
         const newArrivals = await Product.find({ isNewArrival: true }).sort({ createdAt: -1 });
@@ -122,7 +122,7 @@ router.get('/:id', async (req, res) => {
 // 🔄 ROUTE 5: Product Update Karne Ke Liye (Admin Panel Edit System)
 router.put('/:id', async (req, res) => {
     try {
-        // Yeh route req.body me jo bhi aayega (isNewArrival, tag, price) sab automatic update kar dega
+        // Yeh route req.body me jo bhi aayega (mrpPrice, price, tag etc.) sab automatic update kar dega
         const updatedProduct = await Product.findByIdAndUpdate(
             req.params.id,
             req.body,
